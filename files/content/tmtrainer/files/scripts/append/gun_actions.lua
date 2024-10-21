@@ -54,8 +54,7 @@ end
 local function generate_image(index, original_sprite, was_first)
 	local corrupted_sprite = "mods/noita.fairmod/files/content/tmtrainer/files/spell_icons/" .. index .. ".png"
 
-	-- randomly overlay parts of the original sprite onto the corrupted sprite
-	-- if original sprite is blank, first apply the whole corrupted sprite
+	-- Randomly overlay parts of the original sprite onto the corrupted sprite
 
 	local original_sprite_id, original_sprite_width, original_sprite_height = ModImageIdFromFilename(original_sprite)
 	local corrupted_sprite_id, corrupted_sprite_width, corrupted_sprite_height =
@@ -69,7 +68,7 @@ local function generate_image(index, original_sprite, was_first)
 			end
 		end
 	else
-		-- add random lines
+		-- Add random lines
 		for i = 0, corrupted_sprite_width - 1 do
 			if Random(0, 100) < 30 then
 				for j = 0, corrupted_sprite_height - 1 do
@@ -81,14 +80,20 @@ local function generate_image(index, original_sprite, was_first)
 	end
 end
 
+-- Main script execution
+local TMTRAINER_INDEX = 0
+
 -- Function to create a new TMTRAINER action
 local function create_tmtrainer_action(action_type, index)
 	local added_actions = {}
 	local twitch_events = {}
+	local seed_offset = 1
 
 	-- Always add an action of the current action_type
 	local primary_action = get_random_action(action_type)
 	if primary_action then table.insert(added_actions, primary_action) end
+
+	SetRandomSeed(TMTRAINER_INDEX, seed_offset)
 
 	-- Randomly add 1 to 3 more actions or twitch events
 	local num_additional = Random(1, 3)
@@ -127,6 +132,11 @@ local function create_tmtrainer_action(action_type, index)
 	local custom_xml_file = nil
 
 	for i, added_action in ipairs(added_actions) do
+		local id = added_action.id
+
+		-- if id starts with RANDOM_ we ignore it
+		if string.sub(id, 1, 7) == "RANDOM_" then goto continue end
+
 		local added_name = GameTextGetTranslatedOrNot(added_action.name) or ""
 		local added_description = GameTextGetTranslatedOrNot(added_action.description) or ""
 
@@ -170,6 +180,8 @@ local function create_tmtrainer_action(action_type, index)
 		then
 			custom_xml_file = added_action.custom_xml_file
 		end
+
+		::continue::
 	end
 
 	-- Combine name and description parts
@@ -178,51 +190,84 @@ local function create_tmtrainer_action(action_type, index)
 
 	-- Define the action function
 	local function action_function(recursion_level, iteration)
-		-- Store original projectile functions
-		local original_functions = {
-			add_projectile = add_projectile,
-			add_projectile_trigger_timer = add_projectile_trigger_timer,
-			add_projectile_trigger_hit_world = add_projectile_trigger_hit_world,
-			add_projectile_trigger_death = add_projectile_trigger_death,
-		}
+		-- Store original projectile functions in local variables
+		local original_add_projectile = add_projectile
+		local original_add_projectile_trigger_timer = add_projectile_trigger_timer
+		local original_add_projectile_trigger_hit_world = add_projectile_trigger_hit_world
+		local original_add_projectile_trigger_death = add_projectile_trigger_death
 
 		local has_projectile = nil
 
-		-- Override projectile functions to handle multiple projectiles
-		local function override_projectile_function(func_name)
-			_G[func_name] = function(entity_filename, ...)
-				if not has_projectile or has_projectile == entity_filename then
-					has_projectile = entity_filename
-					original_functions[func_name](entity_filename, ...)
-				else
-					c.extra_entities = c.extra_entities .. entity_filename .. ","
-				end
+		-- Define intercepted functions
+		local function intercepted_add_projectile(entity_filename, ...)
+			if not has_projectile or has_projectile == entity_filename then
+				has_projectile = entity_filename
+				original_add_projectile(entity_filename, ...)
+			else
+				c.extra_entities = c.extra_entities .. entity_filename .. ","
 			end
 		end
 
-		override_projectile_function("add_projectile")
-		override_projectile_function("add_projectile_trigger_timer")
-		override_projectile_function("add_projectile_trigger_hit_world")
-		override_projectile_function("add_projectile_trigger_death")
+		local function intercepted_add_projectile_trigger_timer(entity_filename, ...)
+			if not has_projectile or has_projectile == entity_filename then
+				has_projectile = entity_filename
+				original_add_projectile_trigger_timer(entity_filename, ...)
+			else
+				c.extra_entities = c.extra_entities .. entity_filename .. ","
+			end
+		end
+
+		local function intercepted_add_projectile_trigger_hit_world(entity_filename, ...)
+			if not has_projectile or has_projectile == entity_filename then
+				has_projectile = entity_filename
+				original_add_projectile_trigger_hit_world(entity_filename, ...)
+			else
+				c.extra_entities = c.extra_entities .. entity_filename .. ","
+			end
+		end
+
+		local function intercepted_add_projectile_trigger_death(entity_filename, ...)
+			if not has_projectile or has_projectile == entity_filename then
+				has_projectile = entity_filename
+				original_add_projectile_trigger_death(entity_filename, ...)
+			else
+				c.extra_entities = c.extra_entities .. entity_filename .. ","
+			end
+		end
+
+		-- Create a new environment that includes our intercepted functions
+		local env = {
+			add_projectile = intercepted_add_projectile,
+			add_projectile_trigger_timer = intercepted_add_projectile_trigger_timer,
+			add_projectile_trigger_hit_world = intercepted_add_projectile_trigger_hit_world,
+			add_projectile_trigger_death = intercepted_add_projectile_trigger_death,
+		}
+
+		-- Set the metatable's __index to the global environment
+		setmetatable(env, { __index = _G })
+
+		-- Now, execute each function in the 'functions' table within the new environment
+		for i, func in ipairs(functions) do
+			if func then
+				setfenv(func, env)
+
+				seed_offset = seed_offset + 1
+				SetRandomSeed(TMTRAINER_INDEX, seed_offset)
+
+				func(recursion_level, iteration)
+			end
+		end
 
 		-- Add extra entities
 		c.extra_entities = c.extra_entities .. "mods/noita.fairmod/files/content/tmtrainer/files/entities/spawn.xml,"
 
-		-- Execute collected action functions
-		for _, func in ipairs(functions) do
-			func(recursion_level, iteration)
-		end
-
 		-- Run twitch events if not reflecting
 		if not reflecting then
 			for _, twitch_event in ipairs(twitch_events) do
+				seed_offset = seed_offset + 1
+				SetRandomSeed(TMTRAINER_INDEX, seed_offset)
 				_streaming_run_event(twitch_event.id)
 			end
-		end
-
-		-- Restore original functions
-		for func_name, original_func in pairs(original_functions) do
-			_G[func_name] = original_func
 		end
 	end
 
@@ -237,29 +282,25 @@ local function create_tmtrainer_action(action_type, index)
 		spawn_probability = spawn_probability,
 		price = price,
 		mana = mana,
+		max_uses = max_uses,
+		custom_xml_file = custom_xml_file,
+		pandorium_ignore = true,
 		tm_trainer = true,
 		action = function(recursion_level, iteration)
-			local success, err = pcall(action_function, recursion_level, iteration)
-			if not success then print("TMTRAINER ERROR: " .. tostring(err)) end
+			action_function(recursion_level, iteration)
 		end,
 	}
 
 	return new_action
 end
 
--- Main script execution
-local TMTRAINER_INDEX = 0
-SetRandomSeed(1, 1)
-
 -- Iterate over each action type and create new TMTRAINER actions
 for action_type, action_list in pairs(action_info_map) do
 	-- Ensure randomness is consistent
 
 	for _ = 1, #action_list do
-		if Random(1, 100) < 30 then
-			local new_action = create_tmtrainer_action(action_type, TMTRAINER_INDEX)
-			table.insert(actions, new_action)
-			TMTRAINER_INDEX = TMTRAINER_INDEX + 1
-		end
+		local new_action = create_tmtrainer_action(action_type, TMTRAINER_INDEX)
+		table.insert(actions, new_action)
+		TMTRAINER_INDEX = TMTRAINER_INDEX + 1
 	end
 end

@@ -219,7 +219,9 @@ local ui_displays = {
 		},
 		{
 			text = function()
-				local enemy_count = count_nearby_tags("enemy")
+				-- the +1 makes it inaccurate but is intentional as a joke
+				-- https://discord.com/channels/453998283174576133/1293148865943310388/1297182319475691581
+				local enemy_count = count_nearby_tags("enemy") + 1
 				if enemy_count == 1 then
 					return enemy_count .. " enemy nearby"
 				else
@@ -253,18 +255,14 @@ local ui_displays = {
 			text = function()
 				return {
 					text = table.concat({
-						"Achievements Unlocked: ",
+						"Achievements: ",
 						GlobalsGetValue("fairmod_achievements_unlocked", "0"),
 						"/",
 						GlobalsGetValue("fairmod_total_achievements", "0"),
 					}),
 					tooltip = "Click to see them!",
 					on_click = function()
-						if GameHasFlagRun("fairmod_steam_achievement_window") then
-							GameRemoveFlagRun("fairmod_steam_achievement_window")
-						else
-							GameAddFlagRun("fairmod_steam_achievement_window")
-						end
+						fairmod_achievements_displaying_window = not fairmod_achievements_displaying_window
 					end,
 				}
 			end,

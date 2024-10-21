@@ -3,21 +3,17 @@ local x, y = EntityGetTransform(entity_id)
 
 local kill_radius = 5
 
-local last_player_to_kill = nil
-local last_player_to_kill_time = 0
+local player_killed_by_snail = tonumber(GlobalsGetValue("PlayerKilledBySnail", "0"))
 
-if
-	last_player_to_kill ~= nil
-	and GameGetFrameNum() - last_player_to_kill_time > 10
-	and EntityGetIsAlive(last_player_to_kill)
-then
-	EntityKill(last_player_to_kill)
+if player_killed_by_snail ~= 0 and EntityGetIsAlive(player_killed_by_snail) then
+	EntityKill(player_killed_by_snail)
+	return
 end
 
 local nearby_players = EntityGetInRadiusWithTag(x, y, kill_radius, "player_unit") or {}
 
 if #nearby_players <= 0 then
-	nearby_players = EntityGetInRadiusWithTag(x, y, kill_radius, "player_polymorphed") or {}
+	nearby_players = EntityGetInRadiusWithTag(x, y, kill_radius, "polymorphed_player") or {}
 end
 
 for i, player in ipairs(nearby_players) do
@@ -41,6 +37,5 @@ for i, player in ipairs(nearby_players) do
 		EntityLoad("mods/noita.fairmod/files/content/stalactite/entities/guts/guts" .. Random(1, 5) .. ".xml", px, py)
 	end
 
-	last_player_to_kill = player
-	last_player_to_kill_time = GameGetFrameNum()
+	GlobalsSetValue("PlayerKilledBySnail", tostring(player))
 end

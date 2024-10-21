@@ -1,12 +1,15 @@
 local entity = GetUpdatedEntityID()
 
+local piss_key = tonumber(ModSettingGet("noita.fairmod.rebind_pee")) or 19
+local shit_key = tonumber(ModSettingGet("noita.fairmod.rebind_poo")) or 5
+
 -- P to piss
 -- B to shit
-local piss_button = InputIsKeyDown(19)
-local shit_button = InputIsKeyDown(5)
+local piss_button = InputIsKeyDown(piss_key)
+local shit_button = InputIsKeyDown(shit_key)
 
-local piss_pressed = InputIsKeyJustDown(19)
-local shit_pressed = InputIsKeyJustDown(5)
+local piss_pressed = InputIsKeyJustDown(piss_key)
+local shit_pressed = InputIsKeyJustDown(shit_key)
 
 local x, y = EntityGetHotspot(entity, "belt_root", true, true)
 local controls_comp = EntityGetFirstComponentIncludingDisabled(entity, "ControlsComponent")
@@ -67,9 +70,20 @@ if ingestion_comp then
 				)
 			end
 
+			local character_data_comp = EntityGetFirstComponent(entity, "CharacterDataComponent")
+			if character_data_comp ~= nil then
+				local velocity_x, velocity_y = ComponentGetValue2(character_data_comp, "mVelocity")
+				local aim_dir_x, aim_dir_y = ComponentGetValue2(controls_comp, "mAimingVectorNormalized")
+
+				local target_velocity_x = velocity_x + (aim_dir_x * 80)
+				local target_velocity_y = velocity_y + (aim_dir_y * 20)
+
+				ComponentSetValue2(character_data_comp, "mVelocity", target_velocity_x, target_velocity_y)
+			end
+
 			GameCreateParticle("poo", x, y, 8, dir_x * shit_velocity, dir_y * shit_velocity, false, false, false)
 
-			ingestion_size = ingestion_size - 5
+			ingestion_size = ingestion_size - 15
 			ComponentSetValue2(ingestion_comp, "ingestion_size", ingestion_size)
 		end
 	end

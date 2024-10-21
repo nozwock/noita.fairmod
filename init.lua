@@ -1,5 +1,6 @@
 dofile_once("mods/noita.fairmod/files/lib/DialogSystem/init.lua")("mods/noita.fairmod/files/lib/DialogSystem")
 
+local colorblind_mode = dofile_once("mods/noita.fairmod/files/content/colorblind_mode/init.lua")
 local fuckedupenemies = dofile_once("mods/noita.fairmod/files/content/fuckedupenemies/fuckedupenemies.lua") --- @type fuckupenemies
 local heartattack = dofile_once("mods/noita.fairmod/files/content/heartattack/heartattack.lua")
 local nukes = dofile_once("mods/noita.fairmod/files/content/nukes/scripts/nukes.lua")
@@ -18,12 +19,13 @@ local legos = dofile_once("mods/noita.fairmod/files/content/legosfolder/init.lua
 local healthymimic = dofile_once("mods/noita.fairmod/files/content/healthiummimicry/init.lua")
 local ping_attack = dofile_once("mods/noita.fairmod/files/content/ping_attack/ping_attack.lua")
 local surface_bad = dofile_once("mods/noita.fairmod/files/content/surface_bad/init.lua") --- @type surface_bad
+local chemical_horror = dofile_once("mods/noita.fairmod/files/content/chemical_horror/init.lua")
 local fishing = dofile_once("mods/noita.fairmod/files/content/fishing/init.lua")
 local fire = dofile_once("mods/noita.fairmod/files/content/fire/init.lua")
+local fakegold = dofile_once("mods/noita.fairmod/files/content/Fakegolds/init.lua")
 
 dofile_once("mods/noita.fairmod/files/content/coveryourselfinoil/coveryourselfinoil.lua")
 dofile_once("mods/noita.fairmod/files/content/hm_portal_mimic/init.lua")
-dofile_once("mods/noita.fairmod/files/content/fungal_shift/fix_nolla_tags.lua")
 dofile_once("mods/noita.fairmod/files/content/evasive_items/evasive_items.lua")
 dofile_once("mods/noita.fairmod/files/content/wizard_crash/init.lua")
 dofile_once("mods/noita.fairmod/files/content/better_props/init.lua")
@@ -45,9 +47,10 @@ dofile_once("mods/noita.fairmod/files/content/bad_apple/init.lua")
 dofile_once("mods/noita.fairmod/files/content/snowman/init.lua")
 dofile_once("mods/noita.fairmod/files/content/runaway_items/init.lua")
 dofile_once("mods/noita.fairmod/files/content/scenes_in_pws/init.lua")
+dofile_once("mods/noita.fairmod/files/content/shield_generator/init.lua")
+dofile_once("mods/noita.fairmod/files/content/permanent_self_damage/init.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun_actions.lua", "mods/noita.fairmod/files/content/rework_spells/rework_spells.lua")
-ModLuaFileAppend("data/scripts/magic/fungal_shift.lua", "mods/noita.fairmod/files/content/fungal_shift/append.lua")
 ModMaterialsFileAdd("mods/noita.fairmod/files/content/gold_bananas/materials.xml")
 ModLuaFileAppend("data/scripts/perks/perk_list.lua", "mods/noita.fairmod/files/content/minus_life/perk.lua")
 ModLuaFileAppend("data/scripts/perks/perk_list.lua", "mods/noita.fairmod/files/content/mon_wands/perk.lua")
@@ -70,12 +73,13 @@ ModMagicNumbersFileAdd("mods/noita.fairmod/files/magic_numbers.xml")
 function OnModPostInit()
 	dofile_once("mods/noita.fairmod/files/content/enemy_reworks/reworks.lua")
 	dofile_once("mods/noita.fairmod/files/content/water_is_bad/fuck_water.lua")
-	dofile_once("mods/noita.fairmod/files/content/langmix/init.lua")
+	dofile_once("mods/noita.fairmod/files/content/fungal_shift/init.lua")
 	surface_bad:init()
 end
 
 --- Seed init
 function OnMagicNumbersAndWorldSeedInitialized()
+	dofile_once("mods/noita.fairmod/files/content/langmix/init.lua")
 	dofile_once("mods/noita.fairmod/files/content/butts/init.lua")
 	tm_trainer.OnMagicNumbersAndWorldSeedInitialized()
 	gamblecore.PostWorldState()
@@ -83,10 +87,13 @@ function OnMagicNumbersAndWorldSeedInitialized()
 	dofile_once("mods/noita.fairmod/files/content/starting_inventory/tweak_inventory.lua")
 	dofile_once("mods/noita.fairmod/files/content/kolmi_not_home/init.lua")
 	fishing.OnMagicNumbersAndWorldSeedInitialized()
+	dofile_once("mods/noita.fairmod/files/content/corrupted_enemies/init.lua")
+	fakegold.OnMagicNumbersAndWorldSeedInitialized()
 end
 
 function OnPlayerSpawned(player)
 	surface_bad:spawn()
+	colorblind_mode.OnPlayerSpawned()
 
 	GameRemoveFlagRun("pause_snail_ai")
 	GameRemoveFlagRun("draw_evil_mode_text")
@@ -112,6 +119,7 @@ function OnPlayerSpawned(player)
 
 	if GameHasFlagRun("fairmod_init") then return end
 	GameAddFlagRun("fairmod_init")
+	-- stuff after here only runs once on initial run start
 
 	dofile_once("mods/noita.fairmod/files/content/rotate/spawn_rats.lua")
 
@@ -121,8 +129,6 @@ function OnPlayerSpawned(player)
 		GameAddFlagRun("kolmi_not_home")
 		print("Kolmi is not home on this one.")
 	end
-
-	-- stuff after here only runs once on initial run start
 
 	tm_trainer.OnPlayerSpawned(player)
 	funky_portals.OnPlayerSpawned(player)
@@ -154,6 +160,11 @@ function OnPlayerSpawned(player)
 		script_source_file = "mods/noita.fairmod/files/content/piss/player_immersion.lua",
 		execute_every_n_frame = 1,
 		execute_on_added = true,
+	})
+
+	EntityAddComponent2(player, "LuaComponent", {
+		script_source_file = "mods/noita.fairmod/files/content/betterthrow/adjust.lua",
+		execute_every_n_frame = 1,
 	})
 
 	-- debugging
@@ -201,6 +212,7 @@ function OnPausedChanged(is_paused, is_inventory_pause)
 	last_pause_was_inventory = is_inventory_pause
 	if is_paused and not is_inventory_pause then
 		-- regular pause screen
+		colorblind_mode.OnPausedChanged()
 	elseif is_paused and is_inventory_pause then
 		-- inventory pause screen
 	elseif not is_paused then
@@ -224,6 +236,9 @@ end
 -- Lamia wasn't here
 -- Circle was here
 -- Hamis will be here
+-- Conga wuz here
+-- Heinermann was here
+-- Seeker was here
 
 -----##
 ----#o##

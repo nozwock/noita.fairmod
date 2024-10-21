@@ -1,7 +1,7 @@
-dofile("data/scripts/lib/mod_settings.lua")
+dofile_once("data/scripts/lib/mod_settings.lua")
+
 local mod_id = "noita.fairmod"
-mod_settings_version = 1 -- This is a magic global that can be used to migrate settings to new mod versions. call mod_settings_get_version() before mod_settings_update() to get the old value.
-mod_settings = {}
+local prfx = mod_id .. "."
 
 local function PatchGamesInitlua()
 	local file = "data/scripts/init.lua"
@@ -49,9 +49,106 @@ local function PrintHamis()
 	print(toe("###      ###"))
 end
 
+--- gather keycodes from game file
+local function gather_key_codes()
+	local arr = {}
+	arr["0"] = GameTextGetTranslatedOrNot("$menuoptions_configurecontrols_action_unbound")
+	local keycodes_all = ModTextFileGetContent("data/scripts/debug/keycodes.lua")
+	for line in keycodes_all:gmatch("Key_.-\n") do
+		local _, key, code = line:match("(Key_)(.+) = (%d+)")
+		arr[code] = key:upper()
+	end
+	return arr
+end
+local keycodes = gather_key_codes()
+
+local function pending_input()
+	for code, _ in pairs(keycodes) do
+		if InputIsKeyJustDown(code) then return code end
+	end
+end
+
+local function ui_get_input(_, gui, _, im_id, setting)
+	local setting_id = prfx .. setting.id
+	local current = tostring(ModSettingGetNextValue(setting_id)) or "0"
+	local current_key = "[" .. keycodes[current] .. "]"
+
+	if setting.is_waiting_for_input then
+		current_key = GameTextGetTranslatedOrNot("$menuoptions_configurecontrols_pressakey")
+		local new_key = pending_input()
+		if new_key then
+			ModSettingSetNextValue(setting_id, new_key, false)
+			setting.is_waiting_for_input = false
+		end
+	end
+
+	GuiOptionsAddForNextWidget(gui, GUI_OPTION.Layout_NextSameLine)
+	GuiText(gui, mod_setting_group_x_offset, 0, setting.ui_name)
+
+	GuiLayoutBeginHorizontal(gui, 50, 0, true, 0, 0)
+	GuiText(gui, 8, 0, "")
+	local _, _, _, x, y = GuiGetPreviousWidgetInfo(gui)
+	local w, h = GuiGetTextDimensions(gui, current_key)
+	GuiOptionsAddForNextWidget(gui, GUI_OPTION.ForceFocusable)
+	GuiImageNinePiece(gui, im_id, x, y, w, h, 0)
+	local _, _, hovered = GuiGetPreviousWidgetInfo(gui)
+	if hovered then
+		GuiTooltip(gui, setting.ui_description, GameTextGetTranslatedOrNot("$menuoptions_reset_keyboard"))
+		GuiColorSetForNextWidget(gui, 1, 1, 0.7, 1)
+		if InputIsMouseButtonJustDown(1) then setting.is_waiting_for_input = true end
+		if InputIsMouseButtonJustDown(2) then
+			GamePlaySound("ui", "ui/button_click", 0, 0)
+			ModSettingSetNextValue(setting_id, setting.value_default, false)
+			setting.is_waiting_for_input = false
+		end
+	end
+	GuiText(gui, 0, 0, current_key)
+
+	GuiLayoutEnd(gui)
+end
+
+local function build_settings()
+	local settings = {
+		{
+			category_id = "default_settings",
+			ui_name = "",
+			ui_description = "",
+			settings = {
+				{
+					id = "colorblind_mode",
+					ui_name = "Colorblindness Mode",
+					ui_description = "Makes you color blind.",
+					value_default = false,
+					scope = MOD_SETTING_SCOPE_RUNTIME,
+				},
+				{
+					id = "rebind_pee",
+					ui_name = "Piss Button",
+					ui_description = "The keybind used to take a piss.",
+					value_default = "19",
+					ui_fn = ui_get_input,
+					is_waiting_for_input = false,
+					scope = MOD_SETTING_SCOPE_RUNTIME,
+				},
+				{
+					id = "rebind_poo",
+					ui_name = "Shit Button",
+					ui_description = "The keybind used to take a shit.",
+					value_default = "5",
+					ui_fn = ui_get_input,
+					is_waiting_for_input = false,
+					scope = MOD_SETTING_SCOPE_RUNTIME,
+				},
+			},
+		},
+	}
+	return settings
+end
+mod_settings = build_settings()
+
 -- This function is called to ensure the correct setting values are visible to the game. your mod's settings don't work if you don't have a function like this defined in settings.lua.
 function ModSettingsUpdate(init_scope)
-	local old_version = mod_settings_get_version(mod_id) -- This can be used to migrate some settings between mod versions.
+	mod_settings = build_settings()
 	mod_settings_update(mod_id, mod_settings, init_scope)
 	if init_scope == 0 or init_scope == 1 then
 		PatchGamesInitlua()
