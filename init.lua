@@ -1,11 +1,11 @@
 dofile_once("mods/noita.fairmod/files/lib/DialogSystem/init.lua")("mods/noita.fairmod/files/lib/DialogSystem")
 
 local colorblind_mode = dofile_once("mods/noita.fairmod/files/content/colorblind_mode/init.lua")
-local fuckedupenemies = dofile_once("mods/noita.fairmod/files/content/fuckedupenemies/fuckedupenemies.lua") --- @type fuckupenemies
-local heartattack = dofile_once("mods/noita.fairmod/files/content/heartattack/heartattack.lua")
-local nukes = dofile_once("mods/noita.fairmod/files/content/nukes/scripts/nukes.lua")
-local input_delay = dofile_once("mods/noita.fairmod/files/content/input_delay/input_delay.lua")
-local tm_trainer = dofile_once("mods/noita.fairmod/files/content/tmtrainer/init.lua")
+	local fuckedupenemies = dofile_once("mods/noita.fairmod/files/content/fuckedupenemies/fuckedupenemies.lua") --- @type fuckupenemies
+	local heartattack = dofile_once("mods/noita.fairmod/files/content/heartattack/heartattack.lua")
+	local nukes = dofile_once("mods/noita.fairmod/files/content/nukes/scripts/nukes.lua")
+	local input_delay = dofile_once("mods/noita.fairmod/files/content/input_delay/input_delay.lua")
+	local tm_trainer = dofile_once("mods/noita.fairmod/files/content/tmtrainer/init.lua")
 local crits = dofile_once("mods/noita.fairmod/files/content/crits/init.lua")
 local clipboard = dofile_once("mods/noita.fairmod/files/content/clipboard/init.lua")
 local gamblecore = dofile_once("mods/noita.fairmod/files/content/gamblecore/init.lua")
@@ -49,6 +49,9 @@ dofile_once("mods/noita.fairmod/files/content/runaway_items/init.lua")
 dofile_once("mods/noita.fairmod/files/content/scenes_in_pws/init.lua")
 dofile_once("mods/noita.fairmod/files/content/shield_generator/init.lua")
 dofile_once("mods/noita.fairmod/files/content/permanent_self_damage/init.lua")
+dofile_once("mods/noita.fairmod/files/content/mask_box/init.lua")
+dofile_once("mods/noita.fairmod/files/content/bananapeel/init.lua")
+dofile_once("mods/noita.fairmod/files/content/spooky_skeleton/init.lua")
 
 ModLuaFileAppend("data/scripts/gun/gun_actions.lua", "mods/noita.fairmod/files/content/rework_spells/rework_spells.lua")
 ModMaterialsFileAdd("mods/noita.fairmod/files/content/gold_bananas/materials.xml")
@@ -169,6 +172,7 @@ function OnPlayerSpawned(player)
 
 	-- debugging
 	-- EntityLoad("mods/noita.fairmod/files/content/funky_portals/return_portal.xml", target_x, target_y - 30)
+	--EntityLoad("mods/noita.fairmod/files/content/gamblecore/slotmachine.xml", target_x, target_y)
 end
 
 ModRegisterAudioEventMappings("mods/noita.fairmod/GUIDs.txt")
@@ -240,12 +244,33 @@ end
 -- Heinermann was here
 -- Seeker was here
 
------##
-----#o##
-----###o
---- %#o##
---- %-##-%
--- %--%--%
--- %--%--%
--- %--%--%
--- #--#--#
+--     ##
+--    #o##
+--    ###o
+--   %#o##
+--   % ## %
+--  %  %  %
+--  %  %  %
+--  %  %  %
+--  #  #  #
+
+--            ▒▒▒▒▒▒▒▒
+--            ▒▒▒▒▒▒▒▒
+--        ▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒
+--        ▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒
+--        ▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓
+--        ▒▒▒▒▒▒▒▒▒▒▒▒▓▓▓▓
+--    ░░░░▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒
+--    ░░░░▒▒▒▒▓▓▓▓▒▒▒▒▒▒▒▒
+--    ░░░░    ▒▒▒▒▒▒▒▒    ░░░░
+--    ░░░░    ▒▒▒▒▒▒▒▒    ░░░░
+--░░░░        ░░░░        ░░░░
+--░░░░        ░░░░        ░░░░
+--░░░░        ░░░░        ░░░░
+--░░░░        ░░░░        ░░░░
+--░░░░        ░░░░        ▒▒▒▒
+--░░░░        ░░░░        ▒▒▒▒
+--▒▒▒▒        ▒▒▒▒
+--▒▒▒▒        ▒▒▒▒
+
+--▓▒░ Colour palette for my art 😊
