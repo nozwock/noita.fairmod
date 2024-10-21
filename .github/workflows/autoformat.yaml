@@ -1,0 +1,25 @@
+name: Auto Format
+on: [push]
+jobs:
+  autoformat:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install StyLua
+        run: |
+          curl -LO https://github.com/JohnnyMorganz/StyLua/releases/download/v0.20.0/stylua-linux-x86_64.zip
+          unzip -d /usr/local/bin stylua-linux-x86_64.zip
+      - name: Check for modified files
+        id: git-check
+        run: |
+          git diff-index --quiet HEAD --
+          echo "modified=$?" >> $GITHUB_OUTPUT
+      - name: Commit changes
+        uses: EndBug/add-and-commit@v9
+        if: steps.git-check.modified == "1"
+        with:
+          author_name: Hämis
+          message: "Fix formatting"
+          add: "*.lua"
