@@ -11,6 +11,7 @@ local clipboard = dofile_once("mods/noita.fairmod/files/content/clipboard/init.l
 local gamblecore = dofile_once("mods/noita.fairmod/files/content/gamblecore/init.lua")
 local funky_portals = dofile_once("mods/noita.fairmod/files/content/funky_portals/init.lua")
 -- local trading_cards = dofile_once("mods/noita.fairmod/files/content/trading_card_game/init.lua")
+local me = "lol"
 local evil_nuggets = dofile_once("mods/noita.fairmod/files/content/evil_nuggets/init.lua")
 local better_ui = dofile_once("mods/noita.fairmod/files/content/better_ui/better_ui.lua") --- @type better_ui
 local loanshark = dofile_once("mods/noita.fairmod/files/content/loan_shark/init.lua")
