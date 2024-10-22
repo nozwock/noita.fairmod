@@ -1,11 +1,11 @@
 dofile_once("mods/noita.fairmod/files/lib/DialogSystem/init.lua")("mods/noita.fairmod/files/lib/DialogSystem")
 
 local colorblind_mode = dofile_once("mods/noita.fairmod/files/content/colorblind_mode/init.lua")
-	local fuckedupenemies = dofile_once("mods/noita.fairmod/files/content/fuckedupenemies/fuckedupenemies.lua") --- @type fuckupenemies
-	local heartattack = dofile_once("mods/noita.fairmod/files/content/heartattack/heartattack.lua")
-	local nukes = dofile_once("mods/noita.fairmod/files/content/nukes/scripts/nukes.lua")
-	local input_delay = dofile_once("mods/noita.fairmod/files/content/input_delay/input_delay.lua")
-	local tm_trainer = dofile_once("mods/noita.fairmod/files/content/tmtrainer/init.lua")
+local fuckedupenemies = dofile_once("mods/noita.fairmod/files/content/fuckedupenemies/fuckedupenemies.lua") --- @type fuckupenemies
+local heartattack = dofile_once("mods/noita.fairmod/files/content/heartattack/heartattack.lua")
+local nukes = dofile_once("mods/noita.fairmod/files/content/nukes/scripts/nukes.lua")
+local input_delay = dofile_once("mods/noita.fairmod/files/content/input_delay/input_delay.lua")
+local tm_trainer = dofile_once("mods/noita.fairmod/files/content/tmtrainer/init.lua")
 local crits = dofile_once("mods/noita.fairmod/files/content/crits/init.lua")
 local clipboard = dofile_once("mods/noita.fairmod/files/content/clipboard/init.lua")
 local gamblecore = dofile_once("mods/noita.fairmod/files/content/gamblecore/init.lua")
